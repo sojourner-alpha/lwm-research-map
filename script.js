@@ -387,13 +387,18 @@ class MindMap {
     }
     
     updateConnections() {
+        console.log('updateConnections called with', this.connections.length, 'connections');
         this.connectionsLayer.innerHTML = '';
         
-        this.connections.forEach(connection => {
+        let validConnections = 0;
+        this.connections.forEach((connection, index) => {
             const fromNode = this.nodes.get(connection.from);
             const toNode = this.nodes.get(connection.to);
             
-            if (!fromNode || !toNode) return;
+            if (!fromNode || !toNode) {
+                console.log(`Connection ${index}: Missing node - from:${connection.from} (${!!fromNode}) to:${connection.to} (${!!toNode})`);
+                return;
+            }
             
             const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
             const fromCenterX = fromNode.x + fromNode.element.offsetWidth / 2;
@@ -408,7 +413,10 @@ class MindMap {
             line.setAttribute('class', `connection-line connection-${connection.type}`);
             
             this.connectionsLayer.appendChild(line);
+            validConnections++;
         });
+        
+        console.log(`Created ${validConnections} connection lines in SVG layer`);
     }
     
     removePreviewLine() {
@@ -521,7 +529,6 @@ class MindMap {
     
     updateCanvasTransform() {
         const transform = `translate(${this.panX}px, ${this.panY}px) scale(${this.scale})`;
-        console.log('Applying transform:', transform, 'to canvas with', this.nodes.size, 'nodes');
         this.canvas.style.transform = transform;
         this.connectionsLayer.style.transform = transform;
     }
@@ -650,6 +657,7 @@ class MindMap {
         
         // Load default connections
         this.connections = defaultData.connections;
+        console.log('Loaded', this.connections.length, 'connections:', this.connections);
         this.updateConnections();
         
         // Save this default data to localStorage for future visits
