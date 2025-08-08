@@ -391,18 +391,13 @@ class MindMap {
     }
     
     updateConnections() {
-        console.log('updateConnections called with', this.connections.length, 'connections');
         this.connectionsLayer.innerHTML = '';
         
-        let validConnections = 0;
         this.connections.forEach(connection => {
             const fromNode = this.nodes.get(connection.from);
             const toNode = this.nodes.get(connection.to);
             
-            if (!fromNode || !toNode) {
-                console.log('Missing node for connection:', connection.from, '->', connection.to, 'fromNode:', !!fromNode, 'toNode:', !!toNode);
-                return;
-            }
+            if (!fromNode || !toNode) return;
             
             const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
             const fromCenterX = fromNode.x + fromNode.element.offsetWidth / 2;
@@ -417,10 +412,7 @@ class MindMap {
             line.setAttribute('class', `connection-line connection-${connection.type}`);
             
             this.connectionsLayer.appendChild(line);
-            validConnections++;
         });
-        
-        console.log('Created', validConnections, 'connection lines');
     }
     
     removePreviewLine() {
@@ -489,21 +481,45 @@ class MindMap {
         const wheel = e.deltaY < 0 ? 1 : -1;
         const zoom = Math.exp(wheel * zoomIntensity);
         
-        const rect = this.canvasContainer.getBoundingClientRect();
-        const mouseX = e.clientX - rect.left;
-        const mouseY = e.clientY - rect.top;
-        
         const newScale = Math.min(Math.max(0.1, this.scale * zoom), 3);
         
         if (newScale !== this.scale) {
             const scaleDiff = newScale / this.scale;
             
-            this.panX = mouseX - (mouseX - this.panX) * scaleDiff;
-            this.panY = mouseY - (mouseY - this.panY) * scaleDiff;
+            // Get the center of the content area instead of mouse position
+            const contentCenter = this.getContentCenter();
+            const rect = this.canvasContainer.getBoundingClientRect();
+            const centerX = rect.width / 2;
+            const centerY = rect.height / 2;
+            
+            // If we have content, zoom toward content center, otherwise use screen center
+            const targetX = contentCenter ? contentCenter.x * this.scale + this.panX : centerX;
+            const targetY = contentCenter ? contentCenter.y * this.scale + this.panY : centerY;
+            
+            this.panX = targetX - (targetX - this.panX) * scaleDiff;
+            this.panY = targetY - (targetY - this.panY) * scaleDiff;
             this.scale = newScale;
             
             this.updateCanvasTransform();
         }
+    }
+    
+    getContentCenter() {
+        if (this.nodes.size === 0) return null;
+        
+        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+        
+        this.nodes.forEach(node => {
+            minX = Math.min(minX, node.x);
+            minY = Math.min(minY, node.y);
+            maxX = Math.max(maxX, node.x + 200); // approximate node width
+            maxY = Math.max(maxY, node.y + 100); // approximate node height
+        });
+        
+        return {
+            x: (minX + maxX) / 2,
+            y: (minY + maxY) / 2
+        };
     }
     
     zoom(factor) {
@@ -695,6 +711,9 @@ class MindMap {
             // Load connections
             this.connections = parsed.connections || [];
             this.updateConnections();
+            
+            // Fit all content to view after loading
+            setTimeout(() => this.fitToContent(), 100);
         } catch (e) {
             console.error('Failed to load saved data:', e);
             this.loadDefaultData();
@@ -704,7 +723,6 @@ class MindMap {
     loadDefaultData() {
         const defaultData = {"nodes":[{"id":1,"title":"Energy Transition","description":"Broad topic of the energy transition underway.","type":"primer","x":720,"y":310.5,"author":"","link":""},{"id":6,"title":"Electrical Grid","description":"","type":"deep-dive","x":-411.18478091639645,"y":93.9396302268625,"author":"","link":""},{"id":9,"title":"Energy","description":"","type":"primer","x":2158,"y":2182.5,"author":"","link":""},{"id":10,"title":"Electrical Grid","description":"","type":"deep-dive","x":2064,"y":2072.5,"author":"Curt","link":"https://www.figma.com/slides/VlsnEFi8DyhagwWrCNnKyE/LWM---The-Grid?node-id=2-122&t=5TD4Wia7iOrieQaQ-1"},{"id":11,"title":"Nuclear","description":"","type":"deep-dive","x":2249,"y":2079.5,"author":"","link":""},{"id":12,"title":"Batteries","description":"","type":"deep-dive","x":2081,"y":2288.5,"author":"","link":""},{"id":41,"title":"LNG","description":"","type":"deep-dive","x":2330,"y":2248.5,"author":"","link":""},{"id":42,"title":"Healthcare","description":"","type":"primer","x":2772.5,"y":2220,"author":"","link":""},{"id":43,"title":"Longevity","description":"","type":"deep-dive","x":2626.5,"y":2113,"author":"","link":""},{"id":46,"title":"GLP-1s","description":"","type":"deep-dive","x":2834.5,"y":2093,"author":"","link":""},{"id":47,"title":"China","description":"","type":"primer","x":2731.5,"y":2579,"author":"","link":""},{"id":48,"title":"Technology","description":"","type":"deep-dive","x":2568.5,"y":2685,"author":"","link":""},{"id":49,"title":"Real Estate","description":"","type":"deep-dive","x":2896.5,"y":2486,"author":"","link":""},{"id":50,"title":"Taiwan","description":"","type":"deep-dive","x":2881.5,"y":2679,"author":"","link":""},{"id":52,"title":"AI","description":"","type":"primer","x":2219.5,"y":2543,"author":"","link":""},{"id":53,"title":"Datacenters","description":"","type":"deep-dive","x":2274.5,"y":2366,"author":"","link":""},{"id":54,"title":"SaaS Disruption","description":"","type":"deep-dive","x":2051.5,"y":2654,"author":"","link":""},{"id":55,"title":"Foundation Models","description":"","type":"deep-dive","x":2401.5,"y":2448,"author":"","link":""},{"id":56,"title":"GPUs/TPUs","description":"","type":"deep-dive","x":2049.5,"y":2469,"author":"","link":""},{"id":57,"title":"Marijuana & Psychedelics","description":"","type":"deep-dive","x":2968.5,"y":2200,"author":"","link":""}],"connections":[{"id":1754676518116,"from":42,"to":46,"type":"solid"},{"id":1754676520833,"from":42,"to":43,"type":"solid"},{"id":1754676536034,"from":9,"to":11,"type":"solid"},{"id":1754676537263,"from":9,"to":10,"type":"solid"},{"id":1754676538466,"from":9,"to":12,"type":"solid"},{"id":1754676540021,"from":9,"to":41,"type":"solid"},{"id":1754676544302,"from":42,"to":9,"type":"dotted"},{"id":1754677686773,"from":47,"to":49,"type":"solid"},{"id":1754677688119,"from":47,"to":50,"type":"solid"},{"id":1754677689763,"from":47,"to":48,"type":"solid"},{"id":1754677752279,"from":9,"to":53,"type":"solid"},{"id":1754677754137,"from":52,"to":53,"type":"solid"},{"id":1754678256860,"from":52,"to":54,"type":"solid"},{"id":1754678258445,"from":52,"to":55,"type":"solid"},{"id":1754678262409,"from":52,"to":47,"type":"dotted"},{"id":1754678299502,"from":56,"to":52,"type":"solid"},{"id":1754678348276,"from":42,"to":57,"type":"solid"},{"id":1754678474753,"from":9,"to":52,"type":"dotted"}],"nextNodeId":58};
         
-        console.log('Loading default data with', defaultData.nodes.length, 'nodes and', defaultData.connections.length, 'connections');
         
         // Set the next node ID
         this.nextNodeId = defaultData.nextNodeId;
@@ -723,15 +741,16 @@ class MindMap {
             );
         });
         
-        console.log('Created', this.nodes.size, 'nodes');
         
         // Load default connections
         this.connections = defaultData.connections;
-        console.log('Set connections array to', this.connections.length, 'connections');
         this.updateConnections();
         
         // Save this default data to localStorage for future visits
         this.saveToStorage();
+        
+        // Fit all content to view after loading
+        setTimeout(() => this.fitToContent(), 100);
     }
 }
 
