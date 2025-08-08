@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Learn With Me - Research Mind Map</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <h1>Learn With Me</h1>
+            <div class="company">Social Capital</div>
+        </div>
+        <div class="controls">
+            <button id="add-primer" class="btn btn-primary">+ Add Primer</button>
+            <button id="add-deep-dive" class="btn btn-secondary">+ Add Deep Dive</button>
+            <div class="connection-controls">
+                <button id="toggle-connection" class="btn btn-tertiary">Connection Mode</button>
+                <div id="line-type-toggle" class="line-type-toggle hidden">
+                    <label class="toggle-label">
+                        <input type="checkbox" id="line-type-checkbox">
+                        <span class="slider"></span>
+                        <span class="toggle-text">Solid</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-container">
+        <div id="canvas-container" class="canvas-container">
+            <svg id="connections" class="connections-layer"></svg>
+            <div id="canvas" class="canvas"></div>
+        </div>
+        
+        <div class="zoom-controls">
+            <button id="zoom-in" class="zoom-btn">+</button>
+            <button id="zoom-out" class="zoom-btn">-</button>
+            <button id="reset-view" class="zoom-btn">⌂</button>
+        </div>
+    </main>
+
+    <div id="node-modal" class="modal hidden">
+        <div class="modal-content">
+            <h3 id="modal-title">Add New Node</h3>
+            <input type="text" id="node-title" placeholder="Enter title..." maxlength="50">
+            <textarea id="node-description" placeholder="Enter description..." rows="3"></textarea>
+            <input type="text" id="node-author" placeholder="Author/Owner (optional)..." maxlength="30">
+            <input type="url" id="node-link" placeholder="Link to presentation/document (optional)...">
+            <div class="modal-actions">
+                <button id="save-node" class="btn btn-primary">Save</button>
+                <button id="cancel-node" class="btn btn-secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
