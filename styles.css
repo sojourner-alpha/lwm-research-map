@@ -448,7 +448,7 @@ body {
     position: absolute;
     bottom: -8px;
     left: 8px;
-    background: var(--primary-purple);
+    background: #9ca3af;
     color: var(--primary-white);
     font-size: 0.7rem;
     padding: 0.2rem 0.5rem;

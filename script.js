@@ -477,7 +477,7 @@ class MindMap {
     
     handleWheel(e) {
         e.preventDefault();
-        const zoomIntensity = 0.1;
+        const zoomIntensity = 0.05; // Reduced from 0.1 to make it less sensitive
         const wheel = e.deltaY < 0 ? 1 : -1;
         const zoom = Math.exp(wheel * zoomIntensity);
         
@@ -517,9 +517,57 @@ class MindMap {
     }
     
     resetView() {
-        this.scale = 1;
-        this.panX = 0;
-        this.panY = 0;
+        this.fitToContent();
+    }
+    
+    fitToContent() {
+        if (this.nodes.size === 0) {
+            this.scale = 1;
+            this.panX = 0;
+            this.panY = 0;
+            this.updateCanvasTransform();
+            return;
+        }
+        
+        // Calculate bounding box of all nodes
+        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+        
+        this.nodes.forEach(node => {
+            const nodeWidth = 200; // Approximate node width
+            const nodeHeight = 100; // Approximate node height
+            
+            minX = Math.min(minX, node.x);
+            minY = Math.min(minY, node.y);
+            maxX = Math.max(maxX, node.x + nodeWidth);
+            maxY = Math.max(maxY, node.y + nodeHeight);
+        });
+        
+        // Add padding
+        const padding = 100;
+        minX -= padding;
+        minY -= padding;
+        maxX += padding;
+        maxY += padding;
+        
+        const contentWidth = maxX - minX;
+        const contentHeight = maxY - minY;
+        
+        const containerRect = this.canvasContainer.getBoundingClientRect();
+        const containerWidth = containerRect.width;
+        const containerHeight = containerRect.height;
+        
+        // Calculate scale to fit content
+        const scaleX = containerWidth / contentWidth;
+        const scaleY = containerHeight / contentHeight;
+        this.scale = Math.min(scaleX, scaleY, 1); // Don't zoom in beyond 1x
+        
+        // Center the content
+        const contentCenterX = (minX + maxX) / 2;
+        const contentCenterY = (minY + maxY) / 2;
+        
+        this.panX = containerWidth / 2 - contentCenterX * this.scale;
+        this.panY = containerHeight / 2 - contentCenterY * this.scale;
+        
         this.updateCanvasTransform();
     }
     
@@ -623,6 +671,9 @@ class MindMap {
             // Load connections
             this.connections = parsed.connections || [];
             this.updateConnections();
+            
+            // Fit content to view after loading
+            setTimeout(() => this.fitToContent(), 100);
         } catch (e) {
             console.error('Failed to load saved data:', e);
             this.loadDefaultData();
@@ -655,6 +706,9 @@ class MindMap {
         
         // Save this default data to localStorage for future visits
         this.saveToStorage();
+        
+        // Fit content to view after loading default data
+        setTimeout(() => this.fitToContent(), 100);
     }
 }
 
