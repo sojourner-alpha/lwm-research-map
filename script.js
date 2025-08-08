@@ -589,7 +589,12 @@ class MindMap {
     
     loadFromStorage() {
         const data = localStorage.getItem('mindMapData');
-        if (!data) return;
+        
+        if (!data) {
+            // Load default sample data if no saved data exists
+            this.loadDefaultData();
+            return;
+        }
         
         try {
             const parsed = JSON.parse(data);
@@ -620,7 +625,36 @@ class MindMap {
             this.updateConnections();
         } catch (e) {
             console.error('Failed to load saved data:', e);
+            this.loadDefaultData();
         }
+    }
+    
+    loadDefaultData() {
+        const defaultData = {"nodes":[{"id":1,"title":"Energy Transition","description":"Broad topic of the energy transition underway.","type":"primer","x":720,"y":310.5,"author":"","link":""},{"id":6,"title":"Electrical Grid","description":"","type":"deep-dive","x":-411.18478091639645,"y":93.9396302268625,"author":"","link":""},{"id":9,"title":"Energy","description":"","type":"primer","x":2158,"y":2182.5,"author":"","link":""},{"id":10,"title":"Electrical Grid","description":"","type":"deep-dive","x":2064,"y":2072.5,"author":"Curt","link":"https://www.figma.com/slides/VlsnEFi8DyhagwWrCNnKyE/LWM---The-Grid?node-id=2-122&t=5TD4Wia7iOrieQaQ-1"},{"id":11,"title":"Nuclear","description":"","type":"deep-dive","x":2249,"y":2079.5,"author":"","link":""},{"id":12,"title":"Batteries","description":"","type":"deep-dive","x":2081,"y":2288.5,"author":"","link":""},{"id":41,"title":"LNG","description":"","type":"deep-dive","x":2330,"y":2248.5,"author":"","link":""},{"id":42,"title":"Healthcare","description":"","type":"primer","x":2772.5,"y":2220,"author":"","link":""},{"id":43,"title":"Longevity","description":"","type":"deep-dive","x":2626.5,"y":2113,"author":"","link":""},{"id":46,"title":"GLP-1s","description":"","type":"deep-dive","x":2834.5,"y":2093,"author":"","link":""},{"id":47,"title":"China","description":"","type":"primer","x":2731.5,"y":2579,"author":"","link":""},{"id":48,"title":"Technology","description":"","type":"deep-dive","x":2568.5,"y":2685,"author":"","link":""},{"id":49,"title":"Real Estate","description":"","type":"deep-dive","x":2896.5,"y":2486,"author":"","link":""},{"id":50,"title":"Taiwan","description":"","type":"deep-dive","x":2881.5,"y":2679,"author":"","link":""},{"id":52,"title":"AI","description":"","type":"primer","x":2219.5,"y":2543,"author":"","link":""},{"id":53,"title":"Datacenters","description":"","type":"deep-dive","x":2274.5,"y":2366,"author":"","link":""},{"id":54,"title":"SaaS Disruption","description":"","type":"deep-dive","x":2051.5,"y":2654,"author":"","link":""},{"id":55,"title":"Foundation Models","description":"","type":"deep-dive","x":2401.5,"y":2448,"author":"","link":""},{"id":56,"title":"GPUs/TPUs","description":"","type":"deep-dive","x":2049.5,"y":2469,"author":"","link":""},{"id":57,"title":"Marijuana & Psychedelics","description":"","type":"deep-dive","x":2968.5,"y":2200,"author":"","link":""}],"connections":[{"id":1754676518116,"from":42,"to":46,"type":"solid"},{"id":1754676520833,"from":42,"to":43,"type":"solid"},{"id":1754676536034,"from":9,"to":11,"type":"solid"},{"id":1754676537263,"from":9,"to":10,"type":"solid"},{"id":1754676538466,"from":9,"to":12,"type":"solid"},{"id":1754676540021,"from":9,"to":41,"type":"solid"},{"id":1754676544302,"from":42,"to":9,"type":"dotted"},{"id":1754677686773,"from":47,"to":49,"type":"solid"},{"id":1754677688119,"from":47,"to":50,"type":"solid"},{"id":1754677689763,"from":47,"to":48,"type":"solid"},{"id":1754677752279,"from":9,"to":53,"type":"solid"},{"id":1754677754137,"from":52,"to":53,"type":"solid"},{"id":1754678256860,"from":52,"to":54,"type":"solid"},{"id":1754678258445,"from":52,"to":55,"type":"solid"},{"id":1754678262409,"from":52,"to":47,"type":"dotted"},{"id":1754678299502,"from":56,"to":52,"type":"solid"},{"id":1754678348276,"from":42,"to":57,"type":"solid"},{"id":1754678474753,"from":9,"to":52,"type":"dotted"}],"nextNodeId":58};
+        
+        // Set the next node ID
+        this.nextNodeId = defaultData.nextNodeId;
+        
+        // Load default nodes
+        defaultData.nodes.forEach(nodeData => {
+            this.createNodeWithId(
+                nodeData.id,
+                nodeData.title,
+                nodeData.description,
+                nodeData.type,
+                nodeData.x,
+                nodeData.y,
+                nodeData.author || '',
+                nodeData.link || ''
+            );
+        });
+        
+        // Load default connections
+        this.connections = defaultData.connections;
+        this.updateConnections();
+        
+        // Save this default data to localStorage for future visits
+        this.saveToStorage();
     }
 }
 
