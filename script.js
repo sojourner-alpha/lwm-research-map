@@ -9,9 +9,9 @@ class MindMap {
         this.connections = [];
         this.nextNodeId = 1;
         
-        this.scale = 0.5;  // Start zoomed out to see more content
-        this.panX = 200;   // Offset to center on typical content area
-        this.panY = 100;
+        this.scale = 1;    // Start with normal scale
+        this.panX = 0;     // No offset initially
+        this.panY = 0;
         this.isPanning = false;
         this.startPanX = 0;
         this.startPanY = 0;
@@ -580,6 +580,7 @@ class MindMap {
     
     updateCanvasTransform() {
         const transform = `translate(${this.panX}px, ${this.panY}px) scale(${this.scale})`;
+        console.log('Applying transform:', transform, 'to canvas with', this.nodes.size, 'nodes');
         this.canvas.style.transform = transform;
         this.connectionsLayer.style.transform = transform;
     }
