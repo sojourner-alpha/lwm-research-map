@@ -522,6 +522,7 @@ class MindMap {
     
     fitToContent() {
         if (this.nodes.size === 0) {
+            // Default view for empty canvas
             this.scale = 1;
             this.panX = 0;
             this.panY = 0;
@@ -533,8 +534,14 @@ class MindMap {
         let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
         
         this.nodes.forEach(node => {
-            const nodeWidth = 200; // Approximate node width
-            const nodeHeight = 100; // Approximate node height
+            // Get actual node dimensions if available, otherwise use estimates
+            let nodeWidth = 200;
+            let nodeHeight = 100;
+            
+            if (node.element && node.element.offsetWidth > 0) {
+                nodeWidth = node.element.offsetWidth;
+                nodeHeight = node.element.offsetHeight;
+            }
             
             minX = Math.min(minX, node.x);
             minY = Math.min(minY, node.y);
@@ -556,10 +563,19 @@ class MindMap {
         const containerWidth = containerRect.width;
         const containerHeight = containerRect.height;
         
+        // Prevent division by zero
+        if (contentWidth <= 0 || contentHeight <= 0) {
+            this.scale = 1;
+            this.panX = 0;
+            this.panY = 0;
+            this.updateCanvasTransform();
+            return;
+        }
+        
         // Calculate scale to fit content
         const scaleX = containerWidth / contentWidth;
         const scaleY = containerHeight / contentHeight;
-        this.scale = Math.min(scaleX, scaleY, 1); // Don't zoom in beyond 1x
+        this.scale = Math.min(Math.max(0.1, Math.min(scaleX, scaleY)), 1); // Don't zoom in beyond 1x, don't zoom out too much
         
         // Center the content
         const contentCenterX = (minX + maxX) / 2;
@@ -671,9 +687,6 @@ class MindMap {
             // Load connections
             this.connections = parsed.connections || [];
             this.updateConnections();
-            
-            // Fit content to view after loading
-            setTimeout(() => this.fitToContent(), 100);
         } catch (e) {
             console.error('Failed to load saved data:', e);
             this.loadDefaultData();
@@ -706,9 +719,6 @@ class MindMap {
         
         // Save this default data to localStorage for future visits
         this.saveToStorage();
-        
-        // Fit content to view after loading default data
-        setTimeout(() => this.fitToContent(), 100);
     }
 }
 
