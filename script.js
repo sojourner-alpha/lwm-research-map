@@ -43,10 +43,6 @@ class MindMap {
         // Line type toggle
         document.getElementById('line-type-checkbox').addEventListener('change', (e) => this.updateToggleText(e.target.checked));
         
-        // Zoom controls
-        document.getElementById('zoom-in').addEventListener('click', () => this.zoom(1.2));
-        document.getElementById('zoom-out').addEventListener('click', () => this.zoom(0.8));
-        document.getElementById('reset-view').addEventListener('click', () => this.resetView());
         
         // Modal events
         document.getElementById('save-node').addEventListener('click', () => this.saveNode());
@@ -522,61 +518,6 @@ class MindMap {
         };
     }
     
-    zoom(factor) {
-        const rect = this.canvasContainer.getBoundingClientRect();
-        const centerX = rect.width / 2;
-        const centerY = rect.height / 2;
-        
-        const newScale = Math.min(Math.max(0.1, this.scale * factor), 3);
-        
-        if (newScale !== this.scale) {
-            const scaleDiff = newScale / this.scale;
-            
-            this.panX = centerX - (centerX - this.panX) * scaleDiff;
-            this.panY = centerY - (centerY - this.panY) * scaleDiff;
-            this.scale = newScale;
-            
-            this.updateCanvasTransform();
-        }
-    }
-    
-    resetView() {
-        this.fitToContent();
-    }
-    
-    fitToContent() {
-        if (this.nodes.size === 0) {
-            // Default view for empty canvas
-            this.scale = 0.5;
-            this.panX = 200;
-            this.panY = 100;
-            this.updateCanvasTransform();
-            return;
-        }
-        
-        // Simple approach - just center on the content and set reasonable scale
-        const contentCenter = this.getContentCenter();
-        if (!contentCenter) {
-            this.scale = 0.5;
-            this.panX = 200;
-            this.panY = 100;
-            this.updateCanvasTransform();
-            return;
-        }
-        
-        const containerRect = this.canvasContainer.getBoundingClientRect();
-        const centerX = containerRect.width / 2;
-        const centerY = containerRect.height / 2;
-        
-        // Set a reasonable zoom level
-        this.scale = 0.4; // Zoom out to see more content
-        
-        // Center the content in the viewport
-        this.panX = centerX - contentCenter.x * this.scale;
-        this.panY = centerY - contentCenter.y * this.scale;
-        
-        this.updateCanvasTransform();
-    }
     
     updateCanvasTransform() {
         const transform = `translate(${this.panX}px, ${this.panY}px) scale(${this.scale})`;
