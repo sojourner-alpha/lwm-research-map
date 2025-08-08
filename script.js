@@ -9,9 +9,9 @@ class MindMap {
         this.connections = [];
         this.nextNodeId = 1;
         
-        this.scale = 1;
-        this.panX = 0;
-        this.panY = 0;
+        this.scale = 0.5;  // Start zoomed out to see more content
+        this.panX = 200;   // Offset to center on typical content area
+        this.panY = 100;
         this.isPanning = false;
         this.startPanX = 0;
         this.startPanY = 0;
@@ -547,66 +547,33 @@ class MindMap {
     fitToContent() {
         if (this.nodes.size === 0) {
             // Default view for empty canvas
-            this.scale = 1;
-            this.panX = 0;
-            this.panY = 0;
+            this.scale = 0.5;
+            this.panX = 200;
+            this.panY = 100;
             this.updateCanvasTransform();
             return;
         }
         
-        // Calculate bounding box of all nodes
-        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-        
-        this.nodes.forEach(node => {
-            // Get actual node dimensions if available, otherwise use estimates
-            let nodeWidth = 200;
-            let nodeHeight = 100;
-            
-            if (node.element && node.element.offsetWidth > 0) {
-                nodeWidth = node.element.offsetWidth;
-                nodeHeight = node.element.offsetHeight;
-            }
-            
-            minX = Math.min(minX, node.x);
-            minY = Math.min(minY, node.y);
-            maxX = Math.max(maxX, node.x + nodeWidth);
-            maxY = Math.max(maxY, node.y + nodeHeight);
-        });
-        
-        // Add padding
-        const padding = 100;
-        minX -= padding;
-        minY -= padding;
-        maxX += padding;
-        maxY += padding;
-        
-        const contentWidth = maxX - minX;
-        const contentHeight = maxY - minY;
+        // Simple approach - just center on the content and set reasonable scale
+        const contentCenter = this.getContentCenter();
+        if (!contentCenter) {
+            this.scale = 0.5;
+            this.panX = 200;
+            this.panY = 100;
+            this.updateCanvasTransform();
+            return;
+        }
         
         const containerRect = this.canvasContainer.getBoundingClientRect();
-        const containerWidth = containerRect.width;
-        const containerHeight = containerRect.height;
+        const centerX = containerRect.width / 2;
+        const centerY = containerRect.height / 2;
         
-        // Prevent division by zero
-        if (contentWidth <= 0 || contentHeight <= 0) {
-            this.scale = 1;
-            this.panX = 0;
-            this.panY = 0;
-            this.updateCanvasTransform();
-            return;
-        }
+        // Set a reasonable zoom level
+        this.scale = 0.4; // Zoom out to see more content
         
-        // Calculate scale to fit content
-        const scaleX = containerWidth / contentWidth;
-        const scaleY = containerHeight / contentHeight;
-        this.scale = Math.min(Math.max(0.1, Math.min(scaleX, scaleY)), 1); // Don't zoom in beyond 1x, don't zoom out too much
-        
-        // Center the content
-        const contentCenterX = (minX + maxX) / 2;
-        const contentCenterY = (minY + maxY) / 2;
-        
-        this.panX = containerWidth / 2 - contentCenterX * this.scale;
-        this.panY = containerHeight / 2 - contentCenterY * this.scale;
+        // Center the content in the viewport
+        this.panX = centerX - contentCenter.x * this.scale;
+        this.panY = centerY - contentCenter.y * this.scale;
         
         this.updateCanvasTransform();
     }
@@ -711,9 +678,6 @@ class MindMap {
             // Load connections
             this.connections = parsed.connections || [];
             this.updateConnections();
-            
-            // Fit all content to view after loading
-            setTimeout(() => this.fitToContent(), 100);
         } catch (e) {
             console.error('Failed to load saved data:', e);
             this.loadDefaultData();
@@ -748,9 +712,6 @@ class MindMap {
         
         // Save this default data to localStorage for future visits
         this.saveToStorage();
-        
-        // Fit all content to view after loading
-        setTimeout(() => this.fitToContent(), 100);
     }
 }
 
